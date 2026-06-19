@@ -108,12 +108,25 @@ def main():
     # kconfiglib joins srctree with whatever path you give it -- it must be
     # the repo root (cwd), not the Kconfig file's own directory, or relative
     # paths like "app/Kconfig" get doubled into "app/app/Kconfig".
-    os.environ.setdefault("srctree", os.getcwd())
+    srctree = os.environ.setdefault("srctree", os.getcwd())
+
+    # `source "Kconfig.zephyr"` is standard Zephyr boilerplate resolved by the
+    # build system at build time. In standalone CI it won't exist, so we drop
+    # an empty stub so kconfiglib can parse past the directive.
+    stub = os.path.join(srctree, "Kconfig.zephyr")
+    stub_created = False
+    if not os.path.exists(stub):
+        open(stub, "w").close()
+        stub_created = True
+
     try:
         kconf = kc.Kconfig(path, warn=False)
     except Exception as exc:  # noqa: BLE001 - want to report any parse error, not crash
         print(f"::error::Kconfig failed to parse '{path}': {exc}")
         return 1
+    finally:
+        if stub_created:
+            os.remove(stub)
 
     # ---- 1. Top-level "LED Subsystem" menuconfig ---------------------------
     led = find(iter_tree(kconf.top_node),

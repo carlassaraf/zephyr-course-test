@@ -98,14 +98,17 @@ def find_all(nodes, pred):
 
 
 def main():
-    path = os.environ.get("KCONFIG_PATH", "Kconfig")
+    path = os.environ.get("KCONFIG_PATH", "app/Kconfig")
 
     if not os.path.isfile(path):
         print(f"::error::Kconfig file not found at '{path}'. "
               f"Set KCONFIG_PATH if your Kconfig lives elsewhere.")
         return 1
 
-    os.environ.setdefault("srctree", os.path.dirname(os.path.abspath(path)) or ".")
+    # kconfiglib joins srctree with whatever path you give it -- it must be
+    # the repo root (cwd), not the Kconfig file's own directory, or relative
+    # paths like "app/Kconfig" get doubled into "app/app/Kconfig".
+    os.environ.setdefault("srctree", os.getcwd())
     try:
         kconf = kc.Kconfig(path, warn=False)
     except Exception as exc:  # noqa: BLE001 - want to report any parse error, not crash

@@ -3,16 +3,16 @@ choice
   default LED_BLINK_1S
 
 config LED_BLINK_250MS
-  bool "250 ms (very fast)"
+  bool "250ms (very fast)"
 
 config LED_BLINK_500MS
-  bool "500 ms (fast)"
+  bool "500ms (fast)"
 
 config LED_BLINK_1S
-  bool "1 s (medium)"
+  bool "1s (medium)"
 
 config LED_BLINK_2S
-  bool "2 s (slow)"
+  bool "2s (slow)"
 endchoice
 
 config LED_BLINK_SLEEP_TIME

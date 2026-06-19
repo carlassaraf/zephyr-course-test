@@ -98,7 +98,7 @@ def find_all(nodes, pred):
 
 
 def main():
-    path = os.environ.get("KCONFIG_PATH", "app/Kconfig")
+    path = os.environ.get("KCONFIG_PATH", "Kconfig")
 
     if not os.path.isfile(path):
         print(f"::error::Kconfig file not found at '{path}'. "

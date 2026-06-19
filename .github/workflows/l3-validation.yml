@@ -26,5 +26,5 @@ jobs:
         env:
           # ASSUMPTION: adjust this to wherever the assignment's Kconfig
           # actually lives in the workspace repo layout.
-          KCONFIG_PATH: app/Kconfig
+          KCONFIG_PATH: Kconfig
         run: python3 .github/scripts/check_kconfig_l3.py

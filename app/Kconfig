@@ -1,11 +1,6 @@
-menuconfig LED_SUBSYSTEM
-  bool "LED Subsystem"
-  default n
-if LED_SUBSYSTEM
-  rsource "Kconfig.task"
-endif
+config APP_HEARTBEAT_PERIOD_MS
+  int "Heartbeat period (ms)"
+  default 500
+  range 100 2000
 
-menu "Zephyr Settings"
-  source "Kconfig.zephyr"
-endmenu
-  
+source "Kconfig.zephyr"

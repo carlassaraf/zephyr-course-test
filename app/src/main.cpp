@@ -1,45 +1,65 @@
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/sensor.h>
-#include <zephyr/logging/log.h>
-#include <zephyr/usb/usb_device.h>
+#include <zephyr/shell/shell.h>
 
-#include <custom_led/custom_led.h>
-
-LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+static const struct device *ledr = DEVICE_DT_GET(DT_ALIAS(ledr));
+static const struct device *ledg = DEVICE_DT_GET(DT_ALIAS(ledg));
+static const struct device *ledb = DEVICE_DT_GET(DT_ALIAS(ledb));
 
 int main(void) {
-    usb_enable(NULL);
-    const struct device *ledr = DEVICE_DT_GET(DT_ALIAS(ledr));
-    const struct device *ledg = DEVICE_DT_GET(DT_ALIAS(ledg));
-    const struct device *ledb = DEVICE_DT_GET(DT_ALIAS(ledb));
-
     if (!device_is_ready(ledr) || !device_is_ready(ledg) || !device_is_ready(ledb)) {
-        LOG_ERR("Custom LED device not ready");
-        return 0;
+        return 1;
     }
-
-    custom_led_set_name(ledr, "red");
-    custom_led_set_name(ledg, "green");
-    custom_led_set_name(ledb, "blue");
-    LOG_INF("LED names set via custom extension API");
-
-    // Log them
-    char name[32] = "";
-    custom_led_get_name(ledr, name);
-    LOG_INF("ledr name is %s", name);
-
-    custom_led_get_name(ledg, name);
-    LOG_INF("ledg name is %s", name);
-
-    custom_led_get_name(ledb, name);
-    LOG_INF("ledb name is %s", name);
-
-    struct sensor_value val;
     while (1) {
-        sensor_sample_fetch(ledb);
-        k_msleep(CONFIG_BLINKY_SLEEP_MS);
-        sensor_channel_get(ledb, SENSOR_CHAN_ALL, &val);
-        k_msleep(CONFIG_BLINKY_SLEEP_MS);
+        k_msleep(1);
     }
     return 0;
 }
+
+// Shell command handlers
+
+// Root command
+static int cmd_sensor(const struct shell *sh, size_t argc, char **argv) {
+    shell_print(sh, "Use `sensor fetch`, `sensor read` or `sensor info`");
+    return 0;
+}
+
+// Subcommand
+static int cmd_sensor_fetch(const struct shell *sh, size_t argc, char **argv) {
+    int ret = sensor_sample_fetch(ledr);
+    if (ret) {
+        shell_error(sh, "fetch failed: %d", ret);
+        return ret;
+    }
+    shell_print(sh, "ledr: LED ON");
+    return 0;
+}
+
+// Subcommand
+static int cmd_sensor_read(const struct shell *sh, size_t argc, char **argv) {
+    struct sensor_value val;
+    int ret = sensor_channel_get(ledr, SENSOR_CHAN_ALL, &val);
+    if (ret) {
+        shell_error(sh, "read failed: %d", ret);
+        return ret;
+    }
+    shell_print(sh, "ledr: LED OFF");
+    return 0;
+}
+
+// Subcommand
+static int cmd_sensor_info(const struct shell *sh, size_t argc, char **argv) {
+    shell_print(sh, "ledr: %s", device_is_ready(ledr) ? "ready" : "not ready");
+    return 0;
+}
+
+// Command registration
+
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_sensor,
+    SHELL_CMD_ARG(fetch, NULL, "Turn LED on",  cmd_sensor_fetch, 1, 0),
+    SHELL_CMD_ARG(read,  NULL, "Turn LED off", cmd_sensor_read,  1, 0),
+    SHELL_CMD(info, NULL, "Show LED device info", cmd_sensor_info),
+    SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(sensor, &sub_sensor, "LED sensor commands", cmd_sensor);

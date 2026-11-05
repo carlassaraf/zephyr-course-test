@@ -2,6 +2,3 @@ name: custom_drivers
 build:
   cmake: .
   kconfig: Kconfig
-  dts:
-    dirs:
-      - dts/bindings

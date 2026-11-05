@@ -1,11 +1,9 @@
-menuconfig LED_SUBSYSTEM
-  bool "LED Subsystem"
-  default n
-if LED_SUBSYSTEM
-  rsource "Kconfig.task"
-endif
+source "Kconfig.zephyr"
 
-menu "Zephyr Settings"
-  source "Kconfig.zephyr"
+menu "Application options"
+
+  config BLINKY_SLEEP_MS
+    int "Time in ms between LED toggle"
+    default 500
+
 endmenu
-  

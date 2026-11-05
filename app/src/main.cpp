@@ -1,30 +1,43 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
+#include <zephyr/usb/usb_device.h>
 
-#define SLEEP_TIME_MS 1000
+/* The devicetree node identifier for the "ledr" alias. */
+#define LEDR_NODE DT_ALIAS(ledr)
+#define LEDG_NODE DT_ALIAS(ledg)
+#define LEDB_NODE DT_ALIAS(ledb)
 
-/* The devicetree node identifier for the "led0" alias. */
-#define LED_NODE DT_ALIAS(led0)
-
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED_NODE, gpios);
-
-LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+static const struct gpio_dt_spec ledr = GPIO_DT_SPEC_GET(LEDR_NODE, gpios);
+static const struct gpio_dt_spec ledg = GPIO_DT_SPEC_GET(LEDG_NODE, gpios);
+static const struct gpio_dt_spec ledb = GPIO_DT_SPEC_GET(LEDB_NODE, gpios);
 
 int main(void)
 {
+    usb_enable(NULL);
     bool led_state = true;
 
-    if (!gpio_is_ready_dt(&led)) return 0;
+    if (!gpio_is_ready_dt(&ledr)) return 0;
 
-    if (gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE) < 0) return 0;
+    if (gpio_pin_configure_dt(&ledr, GPIO_OUTPUT_ACTIVE) < 0) return 0;
+    if (gpio_pin_configure_dt(&ledg, GPIO_OUTPUT_ACTIVE) < 0) return 0;
+    if (gpio_pin_configure_dt(&ledb, GPIO_OUTPUT_ACTIVE) < 0) return 0;
+
+    uint8_t i = 0;
 
     while (1) {
-        if (gpio_pin_toggle_dt(&led) < 0) return 0;
 
-        led_state = !led_state;
-        LOG_INF("LED state: %s", led_state ? "ON" : "OFF");
-        k_msleep(SLEEP_TIME_MS);
+        if(i % 2 == 0) {
+            if (gpio_pin_toggle_dt(&ledr) < 0) return 0;
+        }
+        if(i % 4 == 0) {
+            if (gpio_pin_toggle_dt(&ledg) < 0) return 0;
+        }
+        if(i % 8 == 0) {
+            if (gpio_pin_toggle_dt(&ledb) < 0) return 0;
+        }
+
+        i++;
+        k_msleep(CONFIG_BLINKY_SLEEP_MS);
     }
     return 0;
 }

@@ -41,12 +41,17 @@ static int custom_led_init(const struct device *dev) {
  * @param chan Sensor channel (not used in this driver)
  * @return 0 on success, negative error code on failure
  */
+/* The level the LED should show: on once a sample was fetched. */
+static int custom_led_level(const struct custom_led_data *data) {
+  return data->led_on ? 1 : 0;
+}
+
 static int custom_led_sample_fetch(const struct device *dev, enum sensor_channel chan) {
   // Get runtime data for the device
   struct custom_led_data *data = dev->data;
   const struct custom_led_config *cfg = dev->config;
   data->led_on = true;
-  return gpio_pin_set_dt(&cfg->led_pin, data->led_on);
+  return gpio_pin_set_dt(&cfg->led_pin, custom_led_level(data));
 }
 
 /**

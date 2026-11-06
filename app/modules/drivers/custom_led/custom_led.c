@@ -2,7 +2,6 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
-#include <string.h>
 
 #include <custom_led/custom_led.h>
 
@@ -17,7 +16,7 @@ struct custom_led_config {
 // Custom LED driver runtime data
 struct custom_led_data {
     bool led_on;
-    char name[32];
+    uint32_t period_ms;
 };
 
 /**
@@ -66,17 +65,15 @@ static int custom_led_channel_get(const struct device *dev, enum sensor_channel 
   return gpio_pin_set_dt(&cfg->led_pin, data->led_on);
 }
 
-static int custom_led_set_name_impl(const struct device *dev, const char *name) {
+static int custom_led_set_period_impl(const struct device *dev, uint32_t period_ms) {
   struct custom_led_data *data = dev->data;
-  strncpy(data->name, name, sizeof(data->name) - 1);
-  data->name[sizeof(data->name) - 1] = '\0';
+  data->period_ms = period_ms;
   return 0;
 }
 
-static int custom_led_get_name_impl(const struct device *dev, char *name) {
+static uint32_t custom_led_get_period_impl(const struct device *dev) {
   struct custom_led_data *data = dev->data;
-  strncpy(name, data->name, sizeof(data->name));
-  return 0;
+  return data->period_ms;
 }
 
 // Point sensor API to custom implementations
@@ -85,13 +82,15 @@ static const struct custom_led_driver_api custom_led_api = {
     .sample_fetch = custom_led_sample_fetch,
     .channel_get = custom_led_channel_get,
   },
-  .set_name = custom_led_set_name_impl,
-  .get_name = custom_led_get_name_impl,
+  .set_period = custom_led_set_period_impl,
+  .get_period = custom_led_get_period_impl,
 };
 
 // Create actual device
 #define CUSTOM_LED_DEFINE(inst)                                       \
-  static struct custom_led_data custom_led_data_##inst;               \
+  static struct custom_led_data custom_led_data_##inst = {           \
+    .period_ms = 1000,                                                \
+  };                                                                  \
   static const struct custom_led_config custom_led_config_##inst = {  \
     .led_pin = GPIO_DT_SPEC_INST_GET(inst, gpios),                    \
   };                                                                  \

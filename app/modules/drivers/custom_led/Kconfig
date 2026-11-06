@@ -1,3 +1,9 @@
 config CUSTOM_LED
-    bool "Custom LED driver"
-    depends on GPIO && SENSOR
+	bool "Custom LED driver"
+	depends on GPIO && SENSOR
+
+config CUSTOM_LED_SHELL
+	bool "Custom LED shell commands"
+	depends on CUSTOM_LED && SHELL
+	help
+	  The `sensor` shell command: fetch, read, info and set.

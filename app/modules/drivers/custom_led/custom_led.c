@@ -65,9 +65,11 @@ static int custom_led_channel_get(const struct device *dev, enum sensor_channel 
 }
 
 // Point sensor API to custom implementations
-static const struct sensor_driver_api custom_led_api = {
-  .sample_fetch = custom_led_sample_fetch,
-  .channel_get = custom_led_channel_get,
+static const struct custom_led_driver_api custom_led_api = {
+  .sensor = {
+    .sample_fetch = custom_led_sample_fetch,
+    .channel_get = custom_led_channel_get,
+  },
 };
 
 // Create actual device

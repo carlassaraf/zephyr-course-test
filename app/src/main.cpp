@@ -1,26 +1,21 @@
 #include <zephyr/kernel.h>
+#include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
-#include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+static const struct device *const led = DEVICE_DT_GET(DT_ALIAS(ledr));
 
-int main(void) {
+int main(void)
+{
+	if (!device_is_ready(led)) {
+		return 0;
+	}
+	while (true) {
+		struct sensor_value val;
 
-    const struct device *ledr = DEVICE_DT_GET(DT_ALIAS(ledr));
-    const struct device *ledg = DEVICE_DT_GET(DT_ALIAS(ledg));
-    const struct device *ledb = DEVICE_DT_GET(DT_ALIAS(ledb));
-
-    if (!device_is_ready(ledr) || !device_is_ready(ledg) || !device_is_ready(ledb)) {
-        LOG_ERR("Custom LED device not ready");
-        return 0;
-    }
-
-    struct sensor_value val;
-    while (1) {
-        sensor_sample_fetch(ledb);
-        k_msleep(CONFIG_BLINKY_SLEEP_MS);
-        sensor_channel_get(ledb, SENSOR_CHAN_ALL, &val);
-        k_msleep(CONFIG_BLINKY_SLEEP_MS);
-    }
-    return 0;
+		sensor_sample_fetch(led);
+		k_msleep(500);
+		sensor_channel_get(led, SENSOR_CHAN_ALL, &val);
+		k_msleep(500);
+	}
+	return 0;
 }

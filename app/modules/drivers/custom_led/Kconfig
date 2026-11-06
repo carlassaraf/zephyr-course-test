@@ -1,3 +1,4 @@
 config CUSTOM_LED
-    bool "Custom LED driver"
-    depends on GPIO && SENSOR
+	bool "Custom LED driver"
+	depends on GPIO && SENSOR
+
